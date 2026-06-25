@@ -27,7 +27,8 @@ import {
   FaCertificate,
   FaAward,
   FaTrophy,
-  FaTimes
+  FaTimes,
+  FaYoutube
 } from 'react-icons/fa';
 import './index.css';
 
@@ -319,19 +320,21 @@ const ProjectStoryCard = ({ project }) => (
     </div>
 
     <div className="flex flex-wrap gap-4">
-      {project.links.map((link, index) => (
-        <a key={index} href={link.url} target="_blank" rel="noopener noreferrer"
-          className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-            link.type === 'github'
-              ? 'bg-linear-to-r from-[#420D4B] to-[#210635] text-[#F5D5E0] border border-[#7B337E] hover:bg-linear-to-r hover:from-[#7B337E] hover:to-[#6667AB]'
-              : 'bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white hover:opacity-90'
-          }`}
-        >
-          {link.type === 'github' ? <FaGithub /> : <FaExternalLinkAlt />}
-          {link.label}
-        </a>
-      ))}
-    </div>
+  {project.links.map((link, index) => (
+    <a key={index} href={link.url} target="_blank" rel="noopener noreferrer"
+      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+        link.type === 'github'
+          ? 'bg-linear-to-r from-[#420D4B] to-[#210635] text-[#F5D5E0] border border-[#7B337E] hover:from-[#7B337E] hover:to-[#6667AB]'
+          : link.type === 'live'
+          ? 'bg-linear-to-r from-[#FF0000]/80 to-[#CC0000] text-white hover:opacity-90'
+          : 'bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white hover:opacity-90'
+      }`}
+    >
+      {link.type === 'github' ? <FaGithub /> : link.type === 'live' ? <FaYoutube /> : <FaExternalLinkAlt />}
+      {link.label}
+    </a>
+  ))}
+</div>
   </motion.div>
 );
 
@@ -534,6 +537,78 @@ const App = () => {
   ];
 
   const projectStories = [
+       {
+      title: "Customer LTV & Profitability Analysis — GlowNest (D2C Skincare)",
+      tagline: "Why are we losing money on repeat customers? A full cohort and LTV breakdown.",
+      icon: <FaChartBar className="text-xl text-white" />,
+      media: [
+        { type: "image", src: "/public/projects/D2C Dashboard.png", caption: "Customer LTV and cohort retention analysis" }
+      ],
+      problem: {
+        statement: "GlowNest, a fictional D2C skincare brand, was seeing growing repeat purchase rates — yet margin was declining. The question: are high-discount repeat customers actually profitable long-term?",
+        points: [
+          "Repeat customers receiving large discounts drove revenue but eroded margin",
+          "No visibility into which customer cohorts had the highest LTV",
+          "Marketing spend was being allocated without cohort-level profitability data",
+          "Business couldn't identify whether acquisition cost was justified by downstream value"
+        ]
+      },
+      role: {
+        description: "I built a synthetic dataset representing 12 months of GlowNest transactions and conducted a full LTV and cohort retention analysis in Python to answer the core business question.",
+        responsibilities: [
+          "Designed and generated realistic synthetic D2C transaction data",
+          "Built cohort analysis tracking retention by acquisition month",
+          "Calculated Customer LTV, CAC, and LTV:CAC ratio by segment",
+          "Identified the high-discount customer segment as net-negative in LTV terms"
+        ]
+      },
+      process: {
+        steps: [
+          "Generated synthetic dataset: 500 customers, 12 months, with fields for acquisition channel, discount tier, product category, and order value",
+          "Segmented customers by acquisition cohort (month) and computed month-over-month retention rates",
+          "Calculated average LTV per cohort and broke down profitability by discount tier",
+          "Discovered that customers acquired via 30%+ discount offers had LTV 42% lower than full-price acquirers",
+          "Built a Power BI-style summary dashboard in Python showing cohort heatmap and LTV waterfall"
+        ]
+      },
+      techStack: [
+        { name: "Python", purpose: "Analysis and dataset generation" },
+        { name: "Pandas", purpose: "Cohort segmentation and aggregation" },
+        { name: "Matplotlib / Seaborn", purpose: "Retention heatmap and LTV charts" },
+        { name: "NumPy", purpose: "LTV and margin calculations" },
+        { name: "Jupyter Notebook", purpose: "Reproducible analysis environment" },
+        { name: "GitHub", purpose: "Version control and portfolio hosting" }
+      ],
+      challenges: [
+        {
+          title: "Realistic synthetic data generation",
+          description: "The analysis needed data that behaved like real D2C purchase patterns — with churn, seasonality, and discount skew — not random noise",
+          solution: "Engineered probabilistic rules: discount customers had higher churn probability, Q4 had elevated order frequency, and CAC varied by channel"
+        },
+        {
+          title: "Cohort alignment across time windows",
+          description: "Customers acquired in later months had fewer observable months of LTV — making raw comparisons misleading",
+          solution: "Normalized cohort LTV to a 6-month window so all cohorts were compared on equal footing"
+        }
+      ],
+      results: {
+        metrics: [
+          "Customers acquired via 30%+ discounts had 42% lower 6-month LTV vs. full-price cohorts",
+          "Month 3 retention was the key inflection point — cohorts surviving past it had 2.3× higher predicted LTV",
+          "Organic channel customers showed the highest LTV:CAC ratio at 3.8×"
+        ],
+        quote: "This project showed me how cohort analysis translates a revenue number into a strategy — you stop asking 'how much did we make?' and start asking 'from whom, and will they stay?'",
+        achievements: [
+          "Identified discount-heavy acquisition as a margin risk, not a growth lever",
+          "Built a reusable cohort analysis framework applicable to any subscription or repeat-purchase business",
+          "Demonstrated the business case for shifting budget toward organic and referral channels"
+        ]
+      },
+      links: [
+        { label: "View on GitHub", type: "github", url: "https://github.com/kritikajain14/D2C-customer-profitability" },
+        { label: "Watch Demo", type: "live", url: "https://youtu.be/kvVj24WqMxw?si=VfCi_TIQ0WSdwgL1" }
+      ]
+    },
     {
       title: "Instagram Influencer Analysis",
       tagline: "Does follower count actually predict engagement? Spoiler: it doesn't.",
@@ -602,78 +677,8 @@ const App = () => {
         ]
       },
       links: [
-        { label: "View on GitHub", type: "github", url: "https://github.com/kritikajain14/instagram-influencer-analysis" }
-      ]
-    },
-    {
-      title: "Customer LTV & Profitability Analysis — GlowNest (D2C Skincare)",
-      tagline: "Why are we losing money on repeat customers? A full cohort and LTV breakdown.",
-      icon: <FaChartBar className="text-xl text-white" />,
-      media: [
-        { type: "image", src: "/public/projects/D2C Dashboard.png", caption: "Customer LTV and cohort retention analysis" }
-      ],
-      problem: {
-        statement: "GlowNest, a fictional D2C skincare brand, was seeing growing repeat purchase rates — yet margin was declining. The question: are high-discount repeat customers actually profitable long-term?",
-        points: [
-          "Repeat customers receiving large discounts drove revenue but eroded margin",
-          "No visibility into which customer cohorts had the highest LTV",
-          "Marketing spend was being allocated without cohort-level profitability data",
-          "Business couldn't identify whether acquisition cost was justified by downstream value"
-        ]
-      },
-      role: {
-        description: "I built a synthetic dataset representing 12 months of GlowNest transactions and conducted a full LTV and cohort retention analysis in Python to answer the core business question.",
-        responsibilities: [
-          "Designed and generated realistic synthetic D2C transaction data",
-          "Built cohort analysis tracking retention by acquisition month",
-          "Calculated Customer LTV, CAC, and LTV:CAC ratio by segment",
-          "Identified the high-discount customer segment as net-negative in LTV terms"
-        ]
-      },
-      process: {
-        steps: [
-          "Generated synthetic dataset: 500 customers, 12 months, with fields for acquisition channel, discount tier, product category, and order value",
-          "Segmented customers by acquisition cohort (month) and computed month-over-month retention rates",
-          "Calculated average LTV per cohort and broke down profitability by discount tier",
-          "Discovered that customers acquired via 30%+ discount offers had LTV 42% lower than full-price acquirers",
-          "Built a Power BI-style summary dashboard in Python showing cohort heatmap and LTV waterfall"
-        ]
-      },
-      techStack: [
-        { name: "Python", purpose: "Analysis and dataset generation" },
-        { name: "Pandas", purpose: "Cohort segmentation and aggregation" },
-        { name: "Matplotlib / Seaborn", purpose: "Retention heatmap and LTV charts" },
-        { name: "NumPy", purpose: "LTV and margin calculations" },
-        { name: "Jupyter Notebook", purpose: "Reproducible analysis environment" },
-        { name: "GitHub", purpose: "Version control and portfolio hosting" }
-      ],
-      challenges: [
-        {
-          title: "Realistic synthetic data generation",
-          description: "The analysis needed data that behaved like real D2C purchase patterns — with churn, seasonality, and discount skew — not random noise",
-          solution: "Engineered probabilistic rules: discount customers had higher churn probability, Q4 had elevated order frequency, and CAC varied by channel"
-        },
-        {
-          title: "Cohort alignment across time windows",
-          description: "Customers acquired in later months had fewer observable months of LTV — making raw comparisons misleading",
-          solution: "Normalized cohort LTV to a 6-month window so all cohorts were compared on equal footing"
-        }
-      ],
-      results: {
-        metrics: [
-          "Customers acquired via 30%+ discounts had 42% lower 6-month LTV vs. full-price cohorts",
-          "Month 3 retention was the key inflection point — cohorts surviving past it had 2.3× higher predicted LTV",
-          "Organic channel customers showed the highest LTV:CAC ratio at 3.8×"
-        ],
-        quote: "This project showed me how cohort analysis translates a revenue number into a strategy — you stop asking 'how much did we make?' and start asking 'from whom, and will they stay?'",
-        achievements: [
-          "Identified discount-heavy acquisition as a margin risk, not a growth lever",
-          "Built a reusable cohort analysis framework applicable to any subscription or repeat-purchase business",
-          "Demonstrated the business case for shifting budget toward organic and referral channels"
-        ]
-      },
-      links: [
-        { label: "View on GitHub", type: "github", url: "https://github.com/kritikajain14/D2C-customer-profitability" }
+        { label: "View on GitHub", type: "github", url: "https://github.com/kritikajain14/instagram-influencer-analysis" },
+        { label: "Watch Demo", type: "live", url: "https://youtu.be/HPfBTvNmTx8" }
       ]
     }
   ];
@@ -695,7 +700,7 @@ const App = () => {
       icon: <FaAward className="text-xl text-white" />,
       imageUrl: "/public/certificates/Deloitte Certificate.jpeg",
       pdfUrl: "/public/certificates/Deloitte Data Analytics Certificate.pdf",
-      skills: ["Data Analysis", "Forensic Technology", "Excel"]
+      skills: ["Data Analysis", "Forensic Technology", "Excel", "Tableau"]
     },
     {
       title: "SQL (Basic) Certificate",
