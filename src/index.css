@@ -668,3 +668,25 @@ html {
     color: black !important;
   }
 }
+
+
+/* Certificate cards */
+.certificate-card {
+  background: rgba(66, 13, 75, 0.25);
+  border: 1px solid rgba(33, 6, 53, 0.5);
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.certificate-card:hover {
+  background: rgba(66, 13, 75, 0.45);
+  border-color: var(--primary);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(123, 51, 126, 0.2);
+}
+
+/* Project media showcase */
+.project-story-card img,
+.project-story-card video {
+  display: block;
+}
