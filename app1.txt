@@ -155,58 +155,31 @@ const ProjectMediaShowcase = ({ media }) => {
 
   return (
     <div className="mb-6 md:mb-8">
-      {/*
-        CSS strategy:
-        - Mobile/tablet (<1024px): .media-inner has no maxHeight → full image visible, no scroll
-        - Desktop (≥1024px):       .media-inner gets maxHeight:460px + overflow-y:auto via CSS
-        This is pure CSS so it works instantly without JS detection.
-      */}
-      <style>{`
-        .media-inner { overflow-x: hidden; }
-        .media-inner::-webkit-scrollbar { display: none; }
-        @media (min-width: 1024px) {
-          .media-inner {
-            max-height: 460px;
-            overflow-y: auto;
-            cursor: ns-resize;
-            scrollbar-width: thin;
-            scrollbar-color: #7B337E #210635;
-          }
-          .media-inner::-webkit-scrollbar {
-            display: block;
-            width: 6px;
-          }
-          .media-inner::-webkit-scrollbar-track {
-            background: #210635;
-            border-radius: 999px;
-          }
-          .media-inner::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, #7B337E, #6667AB);
-            border-radius: 999px;
-          }
-          .media-inner::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(to bottom, #9B43A0, #8889CC);
-          }
-        }
-        /* Fade gradient: only on desktop */
-        .media-fade { display: none; }
-        @media (min-width: 1024px) {
-          .media-fade { display: block; }
-        }
-        /* Scroll hint: hidden on mobile, shown on desktop */
-        .media-hint { display: none; }
-        @media (min-width: 1024px) {
-          .media-hint { display: flex; }
-        }
-      `}</style>
-
       {/* Main viewer */}
-      <div className="relative rounded-xl md:rounded-2xl overflow-hidden border border-[#7B337E]/40 bg-[#150225]">
+      <div
+        className="relative rounded-xl md:rounded-2xl overflow-hidden border border-[#7B337E]/40 bg-[#150225]"
+        style={{ minHeight: '180px' }}
+      >
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="media-inner"
+          className="overflow-y-auto overflow-x-hidden w-full"
+          style={{
+            /*
+              Mobile  phones : viewport is ~360–414px wide → use 55vw (min 200px)
+              Tablets         : ~600–900px → use 45vw
+              Desktop         : 1024px+    → cap at 480px
+              The clamp gives a smooth curve across all three.
+            */
+            maxHeight: 'clamp(200px, 55vw, 480px)',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
+            cursor: 'ns-resize',
+          }}
         >
+          <style>{`div[data-media-scroll]::-webkit-scrollbar{display:none}`}</style>
+
           {active.type === 'video' ? (
             <video
               key={src}
@@ -216,11 +189,12 @@ const ProjectMediaShowcase = ({ media }) => {
               className="w-full h-auto block"
             />
           ) : imgError ? (
+            /* Fallback when image fails to load */
             <div className="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
               <FaChartBar style={{ fontSize: '2.5rem', color: '#7B337E' }} />
               <p className="text-[#C9B8D9] text-sm font-medium">Dashboard Preview</p>
               <p className="text-[#C9B8D9] text-xs opacity-60 max-w-xs">
-                Image couldn't load. Check that the file exists at{' '}
+                Image couldn't load. Make sure the file exists at{' '}
                 <code className="text-[#F5D5E0]">{src}</code> in your public folder.
               </p>
             </div>
@@ -230,24 +204,29 @@ const ProjectMediaShowcase = ({ media }) => {
               src={src}
               alt={active.caption || 'Dashboard preview'}
               onError={() => setImgError(true)}
-              style={{ display: 'block', width: '100%', height: 'auto' }}
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                objectFit: 'contain',
+              }}
               loading="lazy"
             />
           )}
         </div>
 
-        {/* Fade gradient — desktop only, hidden once at bottom */}
+        {/* Fade-out gradient */}
         {!atBottom && !imgError && (
           <div
-            className="media-fade absolute bottom-0 left-0 right-0 pointer-events-none"
-            style={{ height: '56px', background: 'linear-gradient(to bottom, transparent, rgba(21,2,37,0.96))' }}
+            className="absolute bottom-0 left-0 right-0 pointer-events-none"
+            style={{ height: '48px', background: 'linear-gradient(to bottom, transparent, rgba(21,2,37,0.95))' }}
           />
         )}
 
-        {/* Scroll hint — desktop only, hidden once scrolled or at bottom */}
-        {!scrolled && !atBottom && !imgError && (
+        {/* Scroll hint */}
+        {!scrolled && !imgError && (
           <div
-            className="media-hint absolute bottom-3 left-1/2 -translate-x-1/2 items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#F5D5E0] pointer-events-none whitespace-nowrap"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#F5D5E0] pointer-events-none whitespace-nowrap"
             style={{ background: 'rgba(123,51,126,0.9)', backdropFilter: 'blur(4px)' }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
