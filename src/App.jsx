@@ -120,16 +120,25 @@ const SectionHeader = ({ eyebrow, title, description, icon: Icon }) => (
   </motion.div>
 );
 
+/* ─── Fix Vite public path: strip leading /public from src ───────── */
+const fixSrc = (src) => {
+  if (!src) return src;
+  // In Vite, files in /public are served at root. So /public/x.png → /x.png
+  return src.replace(/^\/public\//, '/');
+};
+
 /* ─── Project Media Showcase — fully responsive ─────────────────── */
 const ProjectMediaShowcase = ({ media }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [scrolled, setScrolled] = useState(false);
   const [atBottom, setAtBottom] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     setScrolled(false);
     setAtBottom(false);
+    setImgError(false);
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [activeIndex]);
 
@@ -142,78 +151,85 @@ const ProjectMediaShowcase = ({ media }) => {
 
   if (!media || media.length === 0) return null;
   const active = media[activeIndex];
+  const src = fixSrc(active.src);
 
   return (
     <div className="mb-6 md:mb-8">
       {/* Main viewer */}
-      <div className="relative rounded-xl md:rounded-2xl overflow-hidden border border-[#210635] bg-[#210635]">
+      <div
+        className="relative rounded-xl md:rounded-2xl overflow-hidden border border-[#7B337E]/40 bg-[#150225]"
+        style={{ minHeight: '180px' }}
+      >
         <div
           ref={scrollRef}
           onScroll={handleScroll}
           className="overflow-y-auto overflow-x-hidden w-full"
           style={{
-            /* Responsive max-height:
-               mobile  ~50vw (min 200px, max 260px)
-               tablet  ~45vw (up to 340px)
-               desktop ~40vw (up to 420px) */
-            maxHeight: 'clamp(200px, 50vw, 420px)',
+            /*
+              Mobile  phones : viewport is ~360–414px wide → use 55vw (min 200px)
+              Tablets         : ~600–900px → use 45vw
+              Desktop         : 1024px+    → cap at 480px
+              The clamp gives a smooth curve across all three.
+            */
+            maxHeight: 'clamp(200px, 55vw, 480px)',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch',
             cursor: 'ns-resize',
           }}
         >
-          <style>{`
-            .proj-media-scroll::-webkit-scrollbar { display: none; }
-            @media (min-width: 640px) {
-              .proj-viewer { max-height: clamp(240px, 45vw, 380px); }
-            }
-            @media (min-width: 1024px) {
-              .proj-viewer { max-height: clamp(280px, 40vw, 420px); }
-            }
-          `}</style>
+          <style>{`div[data-media-scroll]::-webkit-scrollbar{display:none}`}</style>
+
           {active.type === 'video' ? (
             <video
-              key={active.src}
-              src={active.src}
+              key={src}
+              src={src}
               controls
               playsInline
               className="w-full h-auto block"
-              style={{ display: 'block', maxWidth: '100%' }}
             />
+          ) : imgError ? (
+            /* Fallback when image fails to load */
+            <div className="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center">
+              <FaChartBar style={{ fontSize: '2.5rem', color: '#7B337E' }} />
+              <p className="text-[#C9B8D9] text-sm font-medium">Dashboard Preview</p>
+              <p className="text-[#C9B8D9] text-xs opacity-60 max-w-xs">
+                Image couldn't load. Make sure the file exists at{' '}
+                <code className="text-[#F5D5E0]">{src}</code> in your public folder.
+              </p>
+            </div>
           ) : (
             <img
-              key={active.src}
-              src={active.src}
+              key={src}
+              src={src}
               alt={active.caption || 'Dashboard preview'}
-              className="w-full h-auto block"
+              onError={() => setImgError(true)}
               style={{
                 display: 'block',
-                maxWidth: '100%',
-                objectFit: 'contain',
-                /* Ensures image never overflows on narrow screens */
                 width: '100%',
+                height: 'auto',
+                objectFit: 'contain',
               }}
               loading="lazy"
             />
           )}
         </div>
 
-        {/* Fade-out gradient at bottom (only when not at bottom) */}
-        {!atBottom && (
+        {/* Fade-out gradient */}
+        {!atBottom && !imgError && (
           <div
             className="absolute bottom-0 left-0 right-0 pointer-events-none"
-            style={{ height: '48px', background: 'linear-gradient(to bottom, transparent, rgba(33,6,53,0.92))' }}
+            style={{ height: '48px', background: 'linear-gradient(to bottom, transparent, rgba(21,2,37,0.95))' }}
           />
         )}
 
-        {/* Scroll hint (only before first scroll) */}
-        {!scrolled && (
+        {/* Scroll hint */}
+        {!scrolled && !imgError && (
           <div
             className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#F5D5E0] pointer-events-none whitespace-nowrap"
-            style={{ background: 'rgba(123,51,126,0.85)' }}
+            style={{ background: 'rgba(123,51,126,0.9)', backdropFilter: 'blur(4px)' }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M12 5v14M5 12l7 7 7-7" />
             </svg>
             Scroll to explore
@@ -228,7 +244,7 @@ const ProjectMediaShowcase = ({ media }) => {
         </p>
       )}
 
-      {/* Thumbnails (only shown when multiple media items) */}
+      {/* Thumbnails */}
       {media.length > 1 && (
         <div className="flex gap-2 mt-3 flex-wrap">
           {media.map((item, index) => (
@@ -241,10 +257,7 @@ const ProjectMediaShowcase = ({ media }) => {
                   ? 'border-[#7B337E] opacity-100'
                   : 'border-[#210635] opacity-55 hover:opacity-90'
               }`}
-              style={{
-                width: 'clamp(48px, 12vw, 80px)',
-                height: 'clamp(34px, 8.5vw, 56px)',
-              }}
+              style={{ width: 'clamp(48px, 12vw, 80px)', height: 'clamp(34px, 8.5vw, 56px)' }}
             >
               {item.type === 'video' ? (
                 <div className="w-full h-full flex items-center justify-center bg-[#210635]">
@@ -252,7 +265,7 @@ const ProjectMediaShowcase = ({ media }) => {
                 </div>
               ) : (
                 <img
-                  src={item.src}
+                  src={fixSrc(item.src)}
                   alt={item.caption || `Preview ${index + 1}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
