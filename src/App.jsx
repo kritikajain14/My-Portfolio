@@ -444,7 +444,10 @@ const ProjectStoryCard = ({ project }) => (
 );
 
 /* ─── Certificate Image Popup Modal ──────────────────────────────── */
-const CertImageModal = ({ src, title, onClose }) => {
+const CertImageModal = ({ src, title, pdfUrl, onClose }) => {
+  const [imgFailed, setImgFailed] = useState(false);
+  const fixedSrc = fixSrc(src);
+
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
@@ -457,45 +460,82 @@ const CertImageModal = ({ src, title, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-9999 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)' }}
+      className="fixed inset-0 flex items-center justify-center p-3 sm:p-5"
+      style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(8px)', zIndex: 9999 }}
       onClick={onClose}
     >
       <div
-        className="relative max-w-3xl w-full rounded-2xl overflow-hidden border border-[#7B337E]"
-        style={{ background: '#0d0117' }}
+        className="relative w-full rounded-2xl border border-[#7B337E] flex flex-col"
+        style={{
+          background: '#0d0117',
+          maxWidth: '720px',
+          /* On mobile take up most of screen height, on desktop cap nicely */
+          maxHeight: '92vh',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-[#210635]">
-          <span className="text-[#F5D5E0] font-semibold text-sm">{title}</span>
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-[#210635] shrink-0">
+          <span className="text-[#F5D5E0] font-semibold text-xs sm:text-sm leading-snug pr-4 line-clamp-2">
+            {title}
+          </span>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-[#420D4B] transition-colors text-[#C9B8D9] hover:text-[#F5D5E0]"
+            className="p-1.5 rounded-lg hover:bg-[#420D4B] transition-colors text-[#C9B8D9] hover:text-[#F5D5E0] shrink-0"
             aria-label="Close"
           >
             <FaTimes />
           </button>
         </div>
-        <div className="p-4 flex items-center justify-center bg-[#0d0117]" style={{ minHeight: '280px' }}>
-          <img
-            src={src}
-            alt={title}
-            className="max-w-full max-h-[70vh] object-contain rounded-lg"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
-          <div className="hidden flex-col items-center gap-3 py-12" style={{ color: '#C9B8D9' }}>
-            <FaCertificate style={{ fontSize: '3rem', color: '#7B337E' }} />
-            <p className="text-sm">Certificate image not available.</p>
-            <p className="text-xs opacity-60">Use the Download PDF button below to access this certificate.</p>
-          </div>
+
+        {/* Image area — scrollable so tall certs work on small screens */}
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden flex items-center justify-center p-3 sm:p-5"
+          style={{ minHeight: '200px' }}
+        >
+          {imgFailed ? (
+            <div className="flex flex-col items-center gap-4 py-10 px-4 text-center">
+              <FaCertificate style={{ fontSize: '3rem', color: '#7B337E' }} />
+              <p className="text-[#C9B8D9] text-sm font-medium">Certificate image couldn't load</p>
+              <p className="text-[#C9B8D9] text-xs opacity-60 max-w-xs">
+                Path tried: <code className="text-[#F5D5E0]">{fixedSrc}</code>
+              </p>
+              <p className="text-[#C9B8D9] text-xs opacity-60">
+                Make sure the file is in your <code className="text-[#F5D5E0]">public/certificates/</code> folder.
+                You can still download the PDF below.
+              </p>
+            </div>
+          ) : (
+            <img
+              src={fixedSrc}
+              alt={title}
+              onError={() => setImgFailed(true)}
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                maxHeight: '70vh',
+                objectFit: 'contain',
+                borderRadius: '10px',
+              }}
+            />
+          )}
         </div>
-        <div className="px-5 py-3 border-t border-[#210635] flex justify-end">
+
+        {/* Footer */}
+        <div className="px-4 sm:px-5 py-3 border-t border-[#210635] flex items-center justify-between gap-3 shrink-0">
+          {pdfUrl && (
+            <a
+              href={fixSrc(pdfUrl)}
+              download
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-linear-to-r from-[#420D4B] to-[#210635] text-[#F5D5E0] border border-[#7B337E] hover:border-[#F5D5E0] transition-all duration-300"
+            >
+              <FaDownload /> Download PDF
+            </a>
+          )}
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm text-[#C9B8D9] hover:text-[#F5D5E0] hover:bg-[#420D4B] transition-colors"
+            className="ml-auto px-4 py-2 rounded-lg text-sm text-[#C9B8D9] hover:text-[#F5D5E0] hover:bg-[#420D4B] transition-colors"
           >
             Close
           </button>
@@ -513,7 +553,8 @@ const CertificateCard = ({ cert }) => {
     <>
       {showModal && (
         <CertImageModal
-          src={cert.imageUrl || cert.pdfUrl}
+          src={cert.imageUrl}
+          pdfUrl={cert.pdfUrl}
           title={cert.title}
           onClose={() => setShowModal(false)}
         />
@@ -803,7 +844,7 @@ const App = () => {
       issuer: "HackerRank",
       date: "2026",
       icon: <FaDatabase className="text-xl text-white" />,
-      imageUrl: "/public/certificates/Sql certificate.jpeg",
+      imageUrl: "/public/certificates/Sql Certificate.jpeg",
       pdfUrl: "/public/certificates/hackerrank sql certificate.pdf",
       skills: ["SQL", "Joins", "Aggregations", "Filtering", "Database Queries"]
     }
