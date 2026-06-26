@@ -120,11 +120,12 @@ const SectionHeader = ({ eyebrow, title, description, icon: Icon }) => (
   </motion.div>
 );
 
+/* ─── Project Media Showcase — fully responsive ─────────────────── */
 const ProjectMediaShowcase = ({ media }) => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const scrollRef = useRef(null);
   const [scrolled, setScrolled] = useState(false);
   const [atBottom, setAtBottom] = useState(false);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     setScrolled(false);
@@ -143,49 +144,119 @@ const ProjectMediaShowcase = ({ media }) => {
   const active = media[activeIndex];
 
   return (
-    <div className="mb-8">
-      <div className="relative rounded-2xl overflow-hidden border border-[#210635] bg-[#210635]">
+    <div className="mb-6 md:mb-8">
+      {/* Main viewer */}
+      <div className="relative rounded-xl md:rounded-2xl overflow-hidden border border-[#210635] bg-[#210635]">
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="overflow-y-auto overflow-x-hidden cursor-ns-resize"
+          className="overflow-y-auto overflow-x-hidden w-full"
           style={{
-            maxHeight: 'clamp(180px, 40vw, 320px)',
+            /* Responsive max-height:
+               mobile  ~50vw (min 200px, max 260px)
+               tablet  ~45vw (up to 340px)
+               desktop ~40vw (up to 420px) */
+            maxHeight: 'clamp(200px, 50vw, 420px)',
             scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
             WebkitOverflowScrolling: 'touch',
+            cursor: 'ns-resize',
           }}
         >
-          <style>{`.no-scrollbar::-webkit-scrollbar{display:none}`}</style>
+          <style>{`
+            .proj-media-scroll::-webkit-scrollbar { display: none; }
+            @media (min-width: 640px) {
+              .proj-viewer { max-height: clamp(240px, 45vw, 380px); }
+            }
+            @media (min-width: 1024px) {
+              .proj-viewer { max-height: clamp(280px, 40vw, 420px); }
+            }
+          `}</style>
           {active.type === 'video' ? (
-            <video key={active.src} src={active.src} controls playsInline className="w-full h-auto block" />
+            <video
+              key={active.src}
+              src={active.src}
+              controls
+              playsInline
+              className="w-full h-auto block"
+              style={{ display: 'block', maxWidth: '100%' }}
+            />
           ) : (
-            <img key={active.src} src={active.src} alt={active.caption || 'Dashboard preview'} className="w-full h-auto block" />
+            <img
+              key={active.src}
+              src={active.src}
+              alt={active.caption || 'Dashboard preview'}
+              className="w-full h-auto block"
+              style={{
+                display: 'block',
+                maxWidth: '100%',
+                objectFit: 'contain',
+                /* Ensures image never overflows on narrow screens */
+                width: '100%',
+              }}
+              loading="lazy"
+            />
           )}
         </div>
+
+        {/* Fade-out gradient at bottom (only when not at bottom) */}
         {!atBottom && (
-          <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: '52px', background: 'linear-gradient(to bottom, transparent, rgba(33,6,53,0.9))' }} />
+          <div
+            className="absolute bottom-0 left-0 right-0 pointer-events-none"
+            style={{ height: '48px', background: 'linear-gradient(to bottom, transparent, rgba(33,6,53,0.92))' }}
+          />
         )}
+
+        {/* Scroll hint (only before first scroll) */}
         {!scrolled && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#F5D5E0] pointer-events-none whitespace-nowrap" style={{ background: 'rgba(123,51,126,0.85)' }}>
+          <div
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-[#F5D5E0] pointer-events-none whitespace-nowrap"
+            style={{ background: 'rgba(123,51,126,0.85)' }}
+          >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M12 5v14M5 12l7 7 7-7" />
             </svg>
-            Scroll to explore dashboard
+            Scroll to explore
           </div>
         )}
       </div>
-      {active.caption && <p className="text-[#C9B8D9] text-sm text-center mt-3 italic">{active.caption}</p>}
+
+      {/* Caption */}
+      {active.caption && (
+        <p className="text-[#C9B8D9] text-xs md:text-sm text-center mt-2 md:mt-3 italic px-2">
+          {active.caption}
+        </p>
+      )}
+
+      {/* Thumbnails (only shown when multiple media items) */}
       {media.length > 1 && (
         <div className="flex gap-2 mt-3 flex-wrap">
           {media.map((item, index) => (
-            <button key={index} onClick={() => setActiveIndex(index)}
-              className={`relative rounded-lg overflow-hidden border-2 transition-all duration-300 shrink-0 ${activeIndex === index ? 'border-[#7B337E] opacity-100' : 'border-[#210635] opacity-55 hover:opacity-90'}`}
-              style={{ width: 'clamp(56px, 10vw, 80px)', height: 'clamp(40px, 7vw, 56px)' }}
+            <button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              aria-label={`Show preview ${index + 1}`}
+              className={`relative rounded-lg overflow-hidden border-2 transition-all duration-300 shrink-0 ${
+                activeIndex === index
+                  ? 'border-[#7B337E] opacity-100'
+                  : 'border-[#210635] opacity-55 hover:opacity-90'
+              }`}
+              style={{
+                width: 'clamp(48px, 12vw, 80px)',
+                height: 'clamp(34px, 8.5vw, 56px)',
+              }}
             >
               {item.type === 'video' ? (
-                <div className="w-full h-full flex items-center justify-center bg-[#210635]"><FaExternalLinkAlt className="text-[#C9B8D9] text-xs" /></div>
+                <div className="w-full h-full flex items-center justify-center bg-[#210635]">
+                  <FaYoutube className="text-[#C9B8D9] text-xs" />
+                </div>
               ) : (
-                <img src={item.src} alt={item.caption || `Preview ${index + 1}`} className="w-full h-full object-cover" />
+                <img
+                  src={item.src}
+                  alt={item.caption || `Preview ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
               )}
             </button>
           ))}
@@ -201,25 +272,25 @@ const ProjectStoryCard = ({ project }) => (
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.6 }}
-    className="project-story-card p-8 mb-12"
+    className="project-story-card p-5 sm:p-6 md:p-8 mb-12"
   >
-    <div className="mb-8">
+    <div className="mb-6 md:mb-8">
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-linear-to-br from-[#7B337E] to-[#6667AB]">{project.icon}</div>
-        <h3 className="text-3xl font-bold gradient-text">{project.title}</h3>
+        <div className="p-2 rounded-lg bg-linear-to-br from-[#7B337E] to-[#6667AB] shrink-0">{project.icon}</div>
+        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text leading-tight">{project.title}</h3>
       </div>
-      <p className="text-[#C9B8D9] text-lg italic">{project.tagline}</p>
+      <p className="text-[#C9B8D9] text-base md:text-lg italic">{project.tagline}</p>
     </div>
 
     <ProjectMediaShowcase media={project.media} />
 
     <div className="mb-8">
-      <h4 className="text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaLightbulb className="text-[#7B337E]" /> The Business Question</h4>
-      <p className="text-[#C9B8D9] mb-4">{project.problem.statement}</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h4 className="text-lg md:text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaLightbulb className="text-[#7B337E]" /> The Business Question</h4>
+      <p className="text-[#C9B8D9] mb-4 text-sm md:text-base">{project.problem.statement}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {project.problem.points.map((point, index) => (
           <div key={index} className="flex items-start gap-3 p-3 bg-linear-to-r from-[#420D4B]/20 to-transparent rounded-lg">
-            <div className="p-1 rounded bg-[#7B337E] mt-1"><FaStar className="text-xs text-white" /></div>
+            <div className="p-1 rounded bg-[#7B337E] mt-1 shrink-0"><FaStar className="text-xs text-white" /></div>
             <span className="text-[#C9B8D9] text-sm">{point}</span>
           </div>
         ))}
@@ -227,15 +298,15 @@ const ProjectStoryCard = ({ project }) => (
     </div>
 
     <div className="mb-8">
-      <h4 className="text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaUsers className="text-[#7B337E]" /> My Role & Approach</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <h4 className="text-lg md:text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaUsers className="text-[#7B337E]" /> My Role & Approach</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <div className="p-4 rounded-xl bg-linear-to-br from-[#420D4B]/30 to-transparent border border-[#210635]">
           <h5 className="font-semibold mb-2 text-[#F5D5E0]">My Role</h5>
           <p className="text-[#C9B8D9] text-sm">{project.role.description}</p>
           <div className="mt-3">
             {project.role.responsibilities.map((resp, index) => (
               <div key={index} className="flex items-center gap-2 mb-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#7B337E]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#7B337E] shrink-0" />
                 <span className="text-[#C9B8D9] text-sm">{resp}</span>
               </div>
             ))}
@@ -246,7 +317,7 @@ const ProjectStoryCard = ({ project }) => (
           <div className="space-y-2">
             {project.process.steps.map((step, index) => (
               <div key={index} className="flex items-start gap-2">
-                <span className="text-[#7B337E] font-bold">{index + 1}.</span>
+                <span className="text-[#7B337E] font-bold shrink-0">{index + 1}.</span>
                 <span className="text-[#C9B8D9] text-sm">{step}</span>
               </div>
             ))}
@@ -256,13 +327,13 @@ const ProjectStoryCard = ({ project }) => (
     </div>
 
     <div className="mb-8">
-      <h4 className="text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaCogs className="text-[#7B337E]" /> Tools & Technologies</h4>
-      <div className="flex flex-wrap gap-3">
+      <h4 className="text-lg md:text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaCogs className="text-[#7B337E]" /> Tools & Technologies</h4>
+      <div className="flex flex-wrap gap-2 md:gap-3">
         {project.techStack.map((tech, index) => (
           <div key={index} className="group relative">
-            <span className="px-4 py-2 rounded-full bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white text-sm font-medium">{tech.name}</span>
+            <span className="px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white text-xs md:text-sm font-medium">{tech.name}</span>
             {tech.purpose && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
                 <div className="bg-[#420D4B] text-[#C9B8D9] text-xs px-3 py-2 rounded-lg shadow-lg border border-[#210635] whitespace-nowrap">{tech.purpose}</div>
               </div>
             )}
@@ -272,15 +343,15 @@ const ProjectStoryCard = ({ project }) => (
     </div>
 
     <div className="mb-8">
-      <h4 className="text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaBrain className="text-[#7B337E]" /> Challenges & Solutions</h4>
+      <h4 className="text-lg md:text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaBrain className="text-[#7B337E]" /> Challenges & Solutions</h4>
       <div className="space-y-4">
         {project.challenges.map((challenge, index) => (
           <div key={index} className="p-4 rounded-xl bg-linear-to-r from-[#420D4B]/20 to-transparent">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-1 rounded bg-[#7B337E]"><span className="text-xs text-white">#{index + 1}</span></div>
+              <div className="p-1 rounded bg-[#7B337E] shrink-0"><span className="text-xs text-white">#{index + 1}</span></div>
               <h5 className="font-semibold text-[#F5D5E0]">{challenge.title}</h5>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div className="p-3 rounded-lg bg-linear-to-br from-[#210635] to-transparent">
                 <h6 className="font-medium text-[#F5D5E0] text-sm mb-1">The Challenge</h6>
                 <p className="text-[#C9B8D9] text-sm">{challenge.description}</p>
@@ -296,7 +367,7 @@ const ProjectStoryCard = ({ project }) => (
     </div>
 
     <div className="mb-8">
-      <h4 className="text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaChartLine className="text-[#7B337E]" /> Key Findings & Impact</h4>
+      <h4 className="text-lg md:text-xl font-bold mb-4 text-[#F5D5E0] flex items-center gap-2"><FaChartLine className="text-[#7B337E]" /> Key Findings & Impact</h4>
       <p className="text-[#C9B8D9] text-sm leading-relaxed">
         The analysis revealed actionable insights, including{" "}
         {project.results.metrics.map((metric, index) => (
@@ -307,11 +378,11 @@ const ProjectStoryCard = ({ project }) => (
         ))}
       </p>
       <div className="mt-6 p-4 rounded-xl bg-linear-to-r from-[#7B337E]/10 to-[#6667AB]/10 border border-[#7B337E]/30">
-        <p className="text-[#C9B8D9] italic">"{project.results.quote}"</p>
+        <p className="text-[#C9B8D9] italic text-sm md:text-base">"{project.results.quote}"</p>
         <div className="mt-3">
           {project.results.achievements.map((achievement, index) => (
             <div key={index} className="flex items-center gap-2 mb-2">
-              <FaHeart className="text-[#7B337E] text-sm" />
+              <FaHeart className="text-[#7B337E] text-sm shrink-0" />
               <span className="text-[#C9B8D9] text-sm">{achievement}</span>
             </div>
           ))}
@@ -319,22 +390,22 @@ const ProjectStoryCard = ({ project }) => (
       </div>
     </div>
 
-    <div className="flex flex-wrap gap-4">
-  {project.links.map((link, index) => (
-    <a key={index} href={link.url} target="_blank" rel="noopener noreferrer"
-      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-        link.type === 'github'
-          ? 'bg-linear-to-r from-[#420D4B] to-[#210635] text-[#F5D5E0] border border-[#7B337E] hover:from-[#7B337E] hover:to-[#6667AB]'
-          : link.type === 'live'
-          ? 'bg-linear-to-r from-[#FF0000]/80 to-[#CC0000] text-white hover:opacity-90'
-          : 'bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white hover:opacity-90'
-      }`}
-    >
-      {link.type === 'github' ? <FaGithub /> : link.type === 'live' ? <FaYoutube /> : <FaExternalLinkAlt />}
-      {link.label}
-    </a>
-  ))}
-</div>
+    <div className="flex flex-wrap gap-3">
+      {project.links.map((link, index) => (
+        <a key={index} href={link.url} target="_blank" rel="noopener noreferrer"
+          className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-medium text-sm transition-all duration-300 ${
+            link.type === 'github'
+              ? 'bg-linear-to-r from-[#420D4B] to-[#210635] text-[#F5D5E0] border border-[#7B337E] hover:from-[#7B337E] hover:to-[#6667AB]'
+              : link.type === 'live'
+              ? 'bg-linear-to-r from-[#FF0000]/80 to-[#CC0000] text-white hover:opacity-90'
+              : 'bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white hover:opacity-90'
+          }`}
+        >
+          {link.type === 'github' ? <FaGithub /> : link.type === 'live' ? <FaYoutube /> : <FaExternalLinkAlt />}
+          {link.label}
+        </a>
+      ))}
+    </div>
   </motion.div>
 );
 
@@ -361,7 +432,6 @@ const CertImageModal = ({ src, title, onClose }) => {
         style={{ background: '#0d0117' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#210635]">
           <span className="text-[#F5D5E0] font-semibold text-sm">{title}</span>
           <button
@@ -372,7 +442,6 @@ const CertImageModal = ({ src, title, onClose }) => {
             <FaTimes />
           </button>
         </div>
-        {/* Image */}
         <div className="p-4 flex items-center justify-center bg-[#0d0117]" style={{ minHeight: '280px' }}>
           <img
             src={src}
@@ -383,16 +452,12 @@ const CertImageModal = ({ src, title, onClose }) => {
               e.target.nextSibling.style.display = 'flex';
             }}
           />
-          <div
-            className="hidden flex-col items-center gap-3 py-12"
-            style={{ color: '#C9B8D9' }}
-          >
+          <div className="hidden flex-col items-center gap-3 py-12" style={{ color: '#C9B8D9' }}>
             <FaCertificate style={{ fontSize: '3rem', color: '#7B337E' }} />
             <p className="text-sm">Certificate image not available.</p>
             <p className="text-xs opacity-60">Use the Download PDF button below to access this certificate.</p>
           </div>
         </div>
-        {/* Footer */}
         <div className="px-5 py-3 border-t border-[#210635] flex justify-end">
           <button
             onClick={onClose}
@@ -447,9 +512,7 @@ const CertificateCard = ({ cert }) => {
           </div>
         )}
 
-        {/* Two buttons side by side */}
         <div className="mt-auto flex gap-3">
-          {/* View Certificate → opens image popup */}
           <button
             onClick={() => setShowModal(true)}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm bg-linear-to-r from-[#7B337E] to-[#6667AB] text-white hover:opacity-90 transition-all duration-300"
@@ -457,7 +520,6 @@ const CertificateCard = ({ cert }) => {
             <FaExternalLinkAlt /> View Certificate
           </button>
 
-          {/* Download PDF */}
           {cert.pdfUrl && (
             <a
               href={cert.pdfUrl}
@@ -529,15 +591,15 @@ const App = () => {
       icon: FaTools
     },
     {
-      title: "Engineering Background",
-      description: "A technical foundation that gives me an edge in data engineering and automation tasks",
-      skills: ["Python Scripting", "REST APIs", "MERN Stack", "MongoDB", "React.js", "Node.js"],
-      icon: FaRobot
+      title: "AI & Prompt Engineering",
+      description: "Leveraging AI tools to accelerate analysis, automate reporting, and extract insights faster",
+      skills: ["ChatGPT / Claude", "Prompt Engineering", "AI-Assisted EDA", "Gemini API", "LLM Workflows", "Copilot for Data", "NLP (spaCy)"],
+      icon: FaBrain
     }
   ];
 
   const projectStories = [
-       {
+    {
       title: "Customer LTV & Profitability Analysis — GlowNest (D2C Skincare)",
       tagline: "Why are we losing money on repeat customers? A full cohort and LTV breakdown.",
       icon: <FaChartBar className="text-xl text-white" />,
@@ -872,7 +934,7 @@ const App = () => {
                       "Understanding the business question is half the analysis"
                     ].map((point, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <div className="p-1 rounded bg-[#7B337E] mt-1"><FaStar className="text-xs text-white" /></div>
+                        <div className="p-1 rounded bg-[#7B337E] mt-1 shrink-0"><FaStar className="text-xs text-white" /></div>
                         <span className="text-[#C9B8D9]">{point}</span>
                       </li>
                     ))}
@@ -889,7 +951,7 @@ const App = () => {
                       "Bridging technical depth with business context"
                     ].map((point, index) => (
                       <li key={index} className="flex items-start gap-3">
-                        <div className="p-1 rounded bg-[#6667AB] mt-1"><FaRocket className="text-xs text-white" /></div>
+                        <div className="p-1 rounded bg-[#6667AB] mt-1 shrink-0"><FaRocket className="text-xs text-white" /></div>
                         <span className="text-[#C9B8D9]">{point}</span>
                       </li>
                     ))}
@@ -962,7 +1024,6 @@ const App = () => {
             ))}
           </div>
 
-          {/* Additional Projects — 3-column, spaced, centered header */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
