@@ -821,15 +821,15 @@ const App = () => {
   ];
 
   const certificates = [
-    {
-      title: "Google Data Analytics Professional Certificate",
-      issuer: "Coursera / Google",
-      date: "2026",
-      icon: <FaCertificate className="text-xl text-white" />,
-      imageUrl: "/public/certificates/google-data-analytics.png",
-      pdfUrl: "/public/certificates/google-data-analytics.pdf",
-      skills: ["Data Cleaning", "SQL", "Tableau", "Spreadsheets", "R"]
-    },
+    // {
+    //   title: "Google Data Analytics Professional Certificate",
+    //   issuer: "Coursera / Google",
+    //   date: "2026",
+    //   icon: <FaCertificate className="text-xl text-white" />,
+    //   imageUrl: "/public/certificates/google-data-analytics.png",
+    //   pdfUrl: "/public/certificates/google-data-analytics.pdf",
+    //   skills: ["Data Cleaning", "SQL", "Tableau", "Spreadsheets", "R"]
+    // },
     {
       title: "Deloitte Data Analytics Virtual Experience",
       issuer: "Forage",
